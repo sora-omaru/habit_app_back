@@ -1,0 +1,15 @@
+# docker-compose-intel.yml
+services:
+  db:
+    image: postgres:16
+    container_name: app_db
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    ports:
+      - "15432:5432"   # ホスト側は空いてる番号
+    volumes:
+      - db-data:/var/lib/postgresql/data
+volumes:
+  db-data:
