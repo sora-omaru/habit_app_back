@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:app;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop    # ← 起動時にDDL作成、終了時に破棄（起動確認に最適）
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc.time_zone: UTC    # Instant/Timestamp のズレ防止に推奨
+  flyway:
+    enabled: false             # まずは無効化して起動を安定させる
+
+logging:
+  level:
+    org.hibernate.SQL: debug
