@@ -10,8 +10,8 @@ package dev.omaru.habit_app.dto;
 //通常版
 //
 //import jakarta.validation.constraints.NotNull;
-//// もし空文字も弾きたいなら↓を使う
-//// import jakarta.validation.constraints.NotBlank;
+/// / もし空文字も弾きたいなら↓を使う
+/// / import jakarta.validation.constraints.NotBlank;
 //
 //public class CreateHabitRequest {
 //    @NotNull
@@ -28,15 +28,18 @@ package dev.omaru.habit_app.dto;
 //}
 
 //Lombokを使った版(1番シンプル)
+
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public  class CreateHabitRequest {
+public class CreateHabitRequest {
     @NotBlank
+    @Size(max = 100)
     private String title;
 }
 
