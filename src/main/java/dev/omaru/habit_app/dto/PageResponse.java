@@ -1,17 +1,15 @@
 package dev.omaru.habit_app.dto;
-import lombok.Builder;
 import lombok.Value;
+import lombok.Builder;
 
 import java.util.List;
 
-@Value
-@Builder
 public class PageResponse<T>{
-    List<T> list;
+    List<T> items;
     int page;
     int size;
-    int totalElements;
+    long totalElements;
     int totalPages;
     boolean hasNext;
-}
 
+}
