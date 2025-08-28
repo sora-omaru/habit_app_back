@@ -6,7 +6,7 @@ import dev.omaru.habit_app.domain.Habit;
 import java.util.List;
 import java.util.UUID;
 
-//Controllerを薄くたもとつためのservice層
+//Controllerを薄くたもとつためのservice層(interface)
 public interface HabitService {
     List<Habit> list(UUID userId);
     Habit create(UUID userId, CreateHabitRequest req);

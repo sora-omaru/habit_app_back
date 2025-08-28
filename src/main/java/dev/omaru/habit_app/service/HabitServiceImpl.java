@@ -10,6 +10,7 @@ import java.util.UUID;
 import java.time.Instant;
 @Service
 public class HabitServiceImpl implements HabitService {
+    //ここでRepository層をよんでいる。
     private final HabitRepository repo;
     public HabitServiceImpl(HabitRepository repo) {this.repo = repo;}
 
@@ -23,6 +24,7 @@ public class HabitServiceImpl implements HabitService {
         Habit h = new Habit();
         h.setUserId(userId);
         h.setTitle(req.getTitle());
+        h.setCreatedAt(Instant.now());
         return repo.save(h);
     }
 }
