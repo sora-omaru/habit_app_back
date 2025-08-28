@@ -4,6 +4,7 @@ import dev.omaru.habit_app.dto.CreateHabitRequest;
 import dev.omaru.habit_app.repository.HabitRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -21,11 +22,13 @@ public class HabitServiceImpl implements HabitService {
     }
 
     @Override
-    public Page<Habit> list(UUID userId, int page, int size) {
-        return repo.findByUserId(
-                userId,
-                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
+    public Page<Habit> list(UUID userId, Pageable pageable) {
+        PageRequest sorted = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt")
         );
+        return repo.findByUserId(userId, sorted);
     }
 
     @Override
