@@ -1,22 +1,31 @@
 package dev.omaru.habit_app.service;
-
 import dev.omaru.habit_app.domain.Habit;
-import  dev.omaru.habit_app.dto.CreateHabitRequest;
+import dev.omaru.habit_app.dto.CreateHabitRequest;
 import dev.omaru.habit_app.repository.HabitRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.UUID;
 import java.time.Instant;
+import java.util.UUID;
+
+
 @Service
 public class HabitServiceImpl implements HabitService {
     //ここでRepository層をよんでいる。
     private final HabitRepository repo;
-    public HabitServiceImpl(HabitRepository repo) {this.repo = repo;}
+
+    public HabitServiceImpl(HabitRepository repo) {
+        this.repo = repo;
+    }
 
     @Override
-    public List<Habit>list(UUID userId) {
-        return repo.findByUserIdOrderByCreatedAtDesc(userId);
+    public Page<Habit> list(UUID userId, int page, int size) {
+        return repo.findByUserId(
+                userId,
+                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
+        );
     }
 
     @Override
@@ -27,8 +36,20 @@ public class HabitServiceImpl implements HabitService {
         h.setCreatedAt(Instant.now());
         return repo.save(h);
     }
-}
 
+    @Override
+    public Habit update(UUID userId, UUID habitId, CreateHabitRequest req) {
+        Habit h = repo.findByIdAndUserId(habitId, userId).orElseThrow();
+        h.setTitle(req.getTitle());
+        return repo.save(h);
+    }
+
+    @Override
+    public void delete(UUID userId, UUID habitId) {
+        Habit h = repo.findByIdAndUserId(habitId, userId).orElseThrow();
+        repo.delete(h);
+    }
+}
 
 
 

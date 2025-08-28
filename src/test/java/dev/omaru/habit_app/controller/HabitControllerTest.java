@@ -5,13 +5,15 @@ import dev.omaru.habit_app.dto.CreateHabitRequest;
 import dev.omaru.habit_app.service.HabitService;
 import dev.omaru.habit_app.view.HabitView;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.Instant;
 import java.util.List;
@@ -20,6 +22,7 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -34,7 +37,7 @@ class HabitControllerTest {
     HabitService service;
 
     @Test
-    void list_returnsDtoArray() throws Exception {
+    void list_returnsPageResponse() throws Exception {
         UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000001");
         Instant now = Instant.parse("2025-08-22T00:00:00Z");
 
@@ -44,14 +47,20 @@ class HabitControllerTest {
         h.setTitle("Run 5 min");
         h.setCreatedAt(now);
 
-        given(service.list(eq(userId))).willReturn(List.of(h));
+        Page<Habit> page = new PageImpl<>(List.of(h), PageRequest.of(0, 10), 1);
+        given(service.list(eq(userId), eq(PageRequest.of(0, 10)))).willReturn(page);
 
         mvc.perform(get("/api/habits")
-                        .header("X-UserId", userId))
+                        .header("X-UserId", userId)
+                        .param("page", "0")
+                        .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
-                .andExpect(jsonPath("$[0].title").value("Run 5 min"))
-                .andExpect(jsonPath("$[0].createdAt").value("2025-08-22T00:00:00Z"));
+                .andExpect(jsonPath("$.items[0].id").value("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+                .andExpect(jsonPath("$.items[0].title").value("Run 5 min"))
+                .andExpect(jsonPath("$.items[0].createdAt").value("2025-08-22T00:00:00Z"))
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(10))
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 
     @Test
@@ -79,6 +88,44 @@ class HabitControllerTest {
                 .andExpect(jsonPath("$.id").value(newId.toString()))
                 .andExpect(jsonPath("$.title").value("Read book"))
                 .andExpect(jsonPath("$.createdAt").value("2025-08-23T00:00:00Z"));
+    }
+
+    @Test
+    void update_returnsDto() throws Exception {
+        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        UUID id = UUID.fromString("cccccccc-cccc-cccc-cccc-cccccccccccc");
+        Instant now = Instant.parse("2025-08-24T00:00:00Z");
+
+        Habit updated = new Habit();
+        updated.setId(id);
+        updated.setUserId(userId);
+        updated.setTitle("New Title");
+        updated.setCreatedAt(now);
+
+        given(service.update(eq(userId), eq(id), any(CreateHabitRequest.class))).willReturn(updated);
+
+        mvc.perform(put("/api/habits/" + id)
+                        .header("X-UserId", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                         {"title":"New Title"}
+                         """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()))
+                .andExpect(jsonPath("$.title").value("New Title"))
+                .andExpect(jsonPath("$.createdAt").value("2025-08-24T00:00:00Z"));
+    }
+
+    @Test
+    void delete_returns204() throws Exception {
+        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        UUID id = UUID.fromString("dddddddd-dddd-dddd-dddd-dddddddddddd");
+
+        willDoNothing().given(service).delete(userId, id);
+
+        mvc.perform(delete("/api/habits/" + id)
+                        .header("X-UserId", userId))
+                .andExpect(status().isNoContent());
     }
 
     @Test
